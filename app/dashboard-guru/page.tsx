@@ -283,4 +283,128 @@ export default function DashboardGuruPage() {
                     <tr key={soal.id}>
                       <td className="p-4 font-mono font-bold">{soal.kodeSoal}</td><td className="p-4 font-medium text-purple-700">{soal.materi}</td>
                       <td className="p-4 text-slate-700 max-w-sm">{soal.pertanyaan}</td><td className="p-4 font-mono font-semibold">{soal.kunciJawaban}</td>
-                      <td className="p-4"><span className="text-[10px] font-bold bg-slate-100 p-1
+                      <td className="p-4"><span className="text-[10px] font-bold bg-slate-100 p-1 rounded">{soal.sumber}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* TAB: GENERATOR SOAL AI */}
+          {activeTab === "generate-ai" && (
+            <div className="space-y-4 max-w-xl">
+              <input type="text" value={promptTopik} onChange={(e) => setPromptTopik(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border text-sm" />
+              <button onClick={handleGenerateSoalAI} className="w-full py-3 bg-purple-600 text-white font-semibold text-sm rounded-xl">⚡ Generate Draf Soal</button>
+              {hasilAi && (
+                <div className="p-4 bg-indigo-50/30 border border-indigo-100 rounded-xl space-y-2">
+                  <p className="text-sm">{hasilAi.pertanyaan}</p>
+                  <button onClick={simpanSoalDariAi} className="text-xs bg-white text-purple-700 border p-2 rounded-lg font-bold">📥 Simpan ke Bank Soal</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ================= TAB: ACAK SISWA KELOMPOK (Fitur I) ================= */}
+          {activeTab === "acak-siswa" && (
+            <div className="max-w-md space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Pembagi Kelompok Heterogen Otomatis</h2>
+                <p className="text-xs text-slate-500 mt-1">Sistem akan mengacak siswa secara silang beradasarkan peringkat kemampuannya.</p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-600 block">TENTUKAN JUMLAH KELOMPOK YANG DIINGINKAN</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={jumlahKelompokTarget}
+                  onChange={(e) => setJumlahKelompokTarget(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-purple-400 text-sm outline-none font-bold"
+                />
+              </div>
+              <button onClick={handleAcakKelompokHeterogen} className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-sm rounded-xl shadow-md active:scale-95 transition-all">
+                🔀 Jalankan Pembagian Kelompok Adil
+              </button>
+            </div>
+          )}
+
+          {/* ================= TAB: ACAK SOAL (Fitur J) ================= */}
+          {activeTab === "acak-soal" && (
+            <div className="max-w-md space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Distribusi Acak Pembagian Soal</h2>
+                <p className="text-xs text-slate-500 mt-1">Menugaskan satu soal unik secara acak dari Bank Soal ke tiap kelompok yang telah terbentuk.</p>
+              </div>
+              {hasilKelompok.length === 0 ? (
+                <div className="p-4 bg-amber-50 text-amber-700 rounded-xl text-xs font-medium border border-amber-200">
+                  ⚠️ Silakan jalankan menu <b>"Acak Kelompok Siswa"</b> terlebih dahulu sebelum mendistribusikan soal.
+                </div>
+              ) : (
+                <button onClick={handleAcakPembagianSoal} className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm rounded-xl shadow-md active:scale-95 transition-all">
+                  🎯 Acak dan Kirim Soal ke Kelompok
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ================= TAB: DAFTAR KELOMPOK (Fitur K) ================= */}
+          {activeTab === "daftar-kelompok" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Tampilan Panel Kelompok & E-LKPD Aktif</h2>
+                <p className="text-xs text-slate-500 mt-1">Daftar komposisi anggota tim heterogen beserta tugas masalah matematika kelompok.</p>
+              </div>
+
+              {hasilKelompok.length === 0 ? (
+                <div className="text-center py-16 text-slate-400 text-xs">Belum ada kelompok yang dibuat. Buka tab "Acak Kelompok Siswa" untuk memulai pembagian.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {hasilKelompok.map((klp, idx) => (
+                    <div key={idx} className="border border-slate-100 rounded-2xl p-6 bg-slate-50/40 space-y-4 shadow-sm">
+                      <div className="flex justify-between items-center border-b pb-3">
+                        <h3 className="font-extrabold text-purple-800 text-base">{klp.namaKelompok}</h3>
+                        <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{klp.anggota.length} Anggota</span>
+                      </div>
+                      
+                      {/* List Anggota */}
+                      <div className="space-y-2">
+                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Anggota Tim (Heterogen):</h4>
+                        <ul className="space-y-1.5">
+                          {klp.anggota.map(member => (
+                            <li key={member.id} className="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-100 text-xs">
+                              <span className="font-semibold text-slate-800">{member.nama}</span>
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+                                member.kategori === 'Tinggi' ? 'bg-emerald-50 text-emerald-700' : member.kategori === 'Sedang' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'
+                              }`}>{member.kode}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Soal yang Ditugaskan */}
+                      <div className="space-y-1 bg-white p-3 rounded-xl border border-dashed border-purple-200">
+                        <h4 className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Tugas Soal Kelompok:</h4>
+                        {klp.soalDiberikan.length === 0 ? (
+                          <p className="text-[11px] text-slate-400 italic">Belum ada soal ditugaskan. Silakan ke menu "Acak Pembagian Soal".</p>
+                        ) : (
+                          klp.soalDiberikan.map(soal => (
+                            <div key={soal.id} className="space-y-1">
+                              <p className="text-[11px] font-bold text-slate-900"><span className="text-purple-700 font-mono">[{soal.kodeSoal}]</span> {soal.materi}</p>
+                              <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">{soal.pertanyaan}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+      </main>
+    </div>
+  );
+}
