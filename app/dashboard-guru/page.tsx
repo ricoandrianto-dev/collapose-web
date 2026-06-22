@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { db } from "@/lib/firebase";
+import { ref, set, push, onValue, remove } from "firebase/database";
 
 interface Siswa {
   id: string;
@@ -30,27 +32,13 @@ export default function DashboardGuruPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("ringkasan");
 
-  // State Data Siswa (Dummy awal agak banyak untuk demonstrasi acak kelompok)
-  const [daftarSiswa, setDaftarSiswa] = useState<Siswa[]>([
-    { id: "1", nama: "Elvina Ratna Puspita", nilaiTkm: 88, kategori: "Tinggi", kode: "T1" },
-    { id: "2", nama: "Muhammad Fajar Aditya", nilaiTkm: 72, kategori: "Sedang", kode: "S1" },
-    { id: "3", nama: "Nadia Anindya Dewanti", nilaiTkm: 55, kategori: "Rendah", kode: "R1" },
-    { id: "4", nama: "Rian Hidayat", nilaiTkm: 85, kategori: "Tinggi", kode: "T2" },
-    { id: "5", nama: "Siti Aminah", nilaiTkm: 78, kategori: "Sedang", kode: "S2" },
-    { id: "6", nama: "Budi Santoso", nilaiTkm: 45, kategori: "Rendah", kode: "R2" },
-  ]);
-
-  // State Data Soal
-  const [bankSoal, setBankSoal] = useState<Soal[]>([
-    { id: "s1", kodeSoal: "SL01", materi: "Pecahan", pertanyaan: "Ibu membeli 1/2 kg telur dan 3/4 kg tepung. Berapa total berat belanjaan Ibu?", kunciJawaban: "5/4 kg atau 1 1/4 kg", sumber: "Manual" },
-    { id: "s2", kodeSoal: "SL02", materi: "Volume Kubus", pertanyaan: "Sebuah kubus memiliki panjang rusuk 5 cm. Hitunglah volume kubus tersebut!", kunciJawaban: "125 cm³", sumber: "AI" }
-  ]);
-
-  // State Hasil Pembentukan Kelompok (Fitur I, J, K)
+  // State Utama aplikasi yang disinkronkan ke Firebase
+  const [daftarSiswa, setDaftarSiswa] = useState<Siswa[]>([]);
+  const [bankSoal, setBankSoal] = useState<Soal[]>([]);
   const [hasilKelompok, setHasilKelompok] = useState<Kelompok[]>([]);
-  const [jumlahKelompokTarget, setJumlahKelompokTarget] = useState("2");
 
   // State Form Inputs
+  const [jumlahKelompokTarget, setJumlahKelompokTarget] = useState("2");
   const [inputMateri, setInputMateri] = useState("");
   const [inputPertanyaan, setInputPertanyaan] = useState("");
   const [inputKunci, setInputKunci] = useState("");
@@ -61,12 +49,58 @@ export default function DashboardGuruPage() {
   const [inputNama, setInputNama] = useState("");
   const [inputNilai, setInputNilai] = useState("");
 
+  // ================= 1. SYNC DATA REALTIME DARI FIREBASE =================
+  useEffect(() => {
+    // Sinkronisasi Data Siswa
+    const siswaRef = ref(db, "siswa");
+    const unsubscribeSiswa = onValue(siswaRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const listSiswa = Object.keys(data).map((key) => ({ id: key, ...data[key] }));
+        setDaftarSiswa(listSiswa);
+      } else {
+        setDaftarSiswa([]);
+      }
+    });
+
+    // Sinkronisasi Bank Soal
+    const soalRef = ref(db, "soal");
+    const unsubscribeSoal = onValue(soalRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const listSoal = Object.keys(data).map((key) => ({ id: key, ...data[key] }));
+        setBankSoal(listSoal);
+      } else {
+        setBankSoal([]);
+      }
+    });
+
+    // Sinkronisasi Hasil Kelompok
+    const kelompokRef = ref(db, "kelompok");
+    const unsubscribeKelompok = onValue(kelompokRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setHasilKelompok(data);
+      } else {
+        setHasilKelompok([]);
+      }
+    });
+
+    return () => {
+      unsubscribeSiswa();
+      unsubscribeSoal();
+      unsubscribeKelompok();
+    };
+  }, []);
+
   const handleLogout = () => {
     router.push("/login-guru");
   };
 
-  // Logika Tambah Siswa
-  const handleTambahSiswa = (e: React.FormEvent) => {
+  // ================= 2. OPERASI SIMPAN KE FIREBASE =================
+  
+  // Tambah Siswa Baru ke Firebase
+  const handleTambahSiswa = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputNama || !inputNilai) return;
     const nilaiNum = parseFloat(inputNilai);
@@ -74,19 +108,42 @@ export default function DashboardGuruPage() {
     let inisial = "S";
     if (nilaiNum >= 80) { kategoriSiswa = "Tinggi"; inisial = "T"; }
     else if (nilaiNum < 60) { kategoriSiswa = "Rendah"; inisial = "R"; }
+    
     const jumlahSamaKategori = daftarSiswa.filter(s => s.kategori === kategoriSiswa).length;
     const kodeOtomatis = `${inisial}${jumlahSamaKategori + 1}`;
     
-    setDaftarSiswa([...daftarSiswa, { id: Date.now().toString(), nama: inputNama, nilaiTkm: nilaiNum, kategori: kategoriSiswa, kode: kodeOtomatis }]);
+    const siswaRef = ref(db, "siswa");
+    const siswaBaru = {
+      nama: inputNama,
+      nilaiTkm: nilaiNum,
+      kategori: kategoriSiswa,
+      kode: kodeOtomatis
+    };
+
+    await push(siswaRef, siswaBaru);
     setInputNama(""); setInputNilai(""); setActiveTab("daftar-siswa");
   };
 
-  // Logika Tambah Soal Manual
-  const handleTambahSoalManual = (e: React.FormEvent) => {
+  // Hapus Siswa dari Firebase
+  const handleHapusSiswa = async (id: string) => {
+    await remove(ref(db, `siswa/${id}`));
+  };
+
+  // Tambah Soal Manual ke Firebase
+  const handleTambahSoalManual = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMateri || !inputPertanyaan || !inputKunci) return;
     const kodeOtomatis = `SL${String(bankSoal.length + 1).padStart(2, '0')}`;
-    setBankSoal([...bankSoal, { id: Date.now().toString(), kodeSoal: kodeOtomatis, materi: inputMateri, pertanyaan: inputPertanyaan, kunciJawaban: inputKunci, sumber: "Manual" }]);
+    
+    const soalRef = ref(db, "soal");
+    await push(soalRef, {
+      kodeSoal: kodeOtomatis,
+      materi: inputMateri,
+      pertanyaan: inputPertanyaan,
+      kunciJawaban: inputKunci,
+      sumber: "Manual"
+    });
+
     setInputMateri(""); setInputPertanyaan(""); setInputKunci(""); setActiveTab("daftar-soal");
   };
 
@@ -102,54 +159,60 @@ export default function DashboardGuruPage() {
     }, 1200);
   };
 
-  const simpanSoalDariAi = () => {
+  // Simpan Soal AI ke Firebase
+  const simpanSoalDariAi = async () => {
     if (!hasilAi) return;
     const kodeOtomatis = `SL${String(bankSoal.length + 1).padStart(2, '0')}`;
-    setBankSoal([...bankSoal, { id: Date.now().toString(), kodeSoal: kodeOtomatis, materi: promptTopik, pertanyaan: hasilAi.pertanyaan, kunciJawaban: hasilAi.jawaban, sumber: "AI" }]);
+    const soalRef = ref(db, "soal");
+    
+    await push(soalRef, {
+      kodeSoal: kodeOtomatis,
+      materi: promptTopik,
+      pertanyaan: hasilAi.pertanyaan,
+      kunciJawaban: hasilAi.jawaban,
+      sumber: "AI"
+    });
+
     setHasilAi(null); setActiveTab("daftar-soal");
   };
 
-  // ================= UTAMA: LOGIKA ACAK KELOMPOK HETEROGEN (Fitur I) =================
-  const handleAcakKelompokHeterogen = () => {
+  // Acak Kelompok Heterogen & Simpan ke Firebase
+  const handleAcakKelompokHeterogen = async () => {
     const targetCount = parseInt(jumlahKelompokTarget);
     if (isNaN(targetCount) || targetCount <= 0 || daftarSiswa.length === 0) return;
 
-    // 1. Pisahkan siswa berdasarkan kategori kelayakan nilainya
     const grupTinggi = [...daftarSiswa.filter(s => s.kategori === "Tinggi")].sort(() => Math.random() - 0.5);
     const grupSedang = [...daftarSiswa.filter(s => s.kategori === "Sedang")].sort(() => Math.random() - 0.5);
     const grupRendah = [...daftarSiswa.filter(s => s.kategori === "Rendah")].sort(() => Math.random() - 0.5);
 
-    // 2. Inisialisasi wadah kelompok kosong
     const kelompokBaru: Kelompok[] = Array.from({ length: targetCount }, (_, i) => ({
-      namaKelompok: `Kelompok ${String.fromCharCode(65 + i)}`, // Kelompok A, B, C...
+      namaKelompok: `Kelompok ${String.fromCharCode(65 + i)}`,
       anggota: [],
       soalDiberikan: []
     }));
 
-    // 3. Distribusikan secara adil dan merata (Round-Robin) agar heterogen
     let currentKlp = 0;
     grupTinggi.forEach(s => { kelompokBaru[currentKlp].anggota.push(s); currentKlp = (currentKlp + 1) % targetCount; });
     grupSedang.forEach(s => { kelompokBaru[currentKlp].anggota.push(s); currentKlp = (currentKlp + 1) % targetCount; });
     grupRendah.forEach(s => { kelompokBaru[currentKlp].anggota.push(s); currentKlp = (currentKlp + 1) % targetCount; });
 
-    setHasilKelompok(kelompokBaru);
+    await set(ref(db, "kelompok"), kelompokBaru);
     setActiveTab("daftar-kelompok");
   };
 
-  // ================= UTAMA: LOGIKA ACAK PEMBAGIAN SOAL (Fitur J) =================
-  const handleAcakPembagianSoal = () => {
+  // Acak Pembagian Soal ke Kelompok & Update Firebase
+  const handleAcakPembagianSoal = async () => {
     if (hasilKelompok.length === 0 || bankSoal.length === 0) return;
 
     const updatedKelompok = hasilKelompok.map(klp => {
-      // Ambil 1 soal secara acak dari bank soal untuk tiap kelompok
       const soalAcak = bankSoal[Math.floor(Math.random() * bankSoal.length)];
       return {
         ...klp,
-        soalDiberikan: [soalAcak] // Assign soal ke kelompok
+        soalDiberikan: [soalAcak]
       };
     });
 
-    setHasilKelompok(updatedKelompok);
+    await set(ref(db, "kelompok"), updatedKelompok);
     setActiveTab("daftar-kelompok");
   };
 
@@ -199,7 +262,7 @@ export default function DashboardGuruPage() {
         <header className="flex justify-between items-center mb-8 border-b border-slate-100 pb-5">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900">{menuSidebar.find((m) => m.id === activeTab)?.label}</h1>
-            <p className="text-xs text-slate-500 mt-1">Sistem Manajemen Kelompok Diskusi Realtime</p>
+            <p className="text-xs text-slate-500 mt-1">Sistem Manajemen Kelompok Diskusi Realtime (Firebase Cloud)</p>
           </div>
         </header>
 
@@ -210,7 +273,7 @@ export default function DashboardGuruPage() {
             <div className="space-y-6">
               <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-8 text-white shadow-md shadow-purple-100">
                 <h2 className="text-2xl font-bold">Halo, Pak Rico! 👋</h2>
-                <p className="text-purple-100 text-sm mt-1">Sistem pembagian kelompok cerdas siap digunakan untuk membagi kelas secara adil dan heterogen.</p>
+                <p className="text-purple-100 text-sm mt-1">Seluruh data saat ini tersambung ke Firebase Database secara aman dan permanen.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="border p-6 rounded-2xl bg-slate-50/50">
@@ -234,7 +297,7 @@ export default function DashboardGuruPage() {
               <input type="text" required value={inputNama} onChange={(e) => setInputNama(e.target.value)} placeholder="Nama lengkap" className="w-full px-4 py-3 rounded-xl border text-sm outline-none" /></div>
               <div className="space-y-1"><label className="text-xs font-bold text-slate-600">NILAI TKM</label>
               <input type="number" required value={inputNilai} onChange={(e) => setInputNilai(e.target.value)} placeholder="0 - 100" className="w-full px-4 py-3 rounded-xl border text-sm outline-none" /></div>
-              <button type="submit" className="px-5 py-3 bg-purple-600 text-white font-semibold text-sm rounded-xl">💾 Simpan Siswa</button>
+              <button type="submit" className="px-5 py-3 bg-purple-600 text-white font-semibold text-sm rounded-xl">💾 Simpan Siswa Ke Cloud</button>
             </form>
           )}
 
@@ -243,7 +306,7 @@ export default function DashboardGuruPage() {
             <div className="overflow-x-auto border rounded-2xl">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 text-slate-600 text-xs font-bold border-b">
-                  <tr><th className="p-4">NO</th><th className="p-4">NAMA SISWA</th><th className="p-4">NILAI</th><th className="p-4">KATEGORI</th><th className="p-4">KODE</th></tr>
+                  <tr><th className="p-4">NO</th><th className="p-4">NAMA SISWA</th><th className="p-4">NILAI</th><th className="p-4">KATEGORI</th><th className="p-4">KODE</th><th className="p-4 text-center">AKSI</th></tr>
                 </thead>
                 <tbody className="divide-y">
                   {daftarSiswa.map((s, idx) => (
@@ -251,8 +314,14 @@ export default function DashboardGuruPage() {
                       <td className="p-4 text-slate-400">{idx+1}</td><td className="p-4 font-bold">{s.nama}</td><td className="p-4 font-mono">{s.nilaiTkm}</td>
                       <td className="p-4"><span className={`px-2.5 py-1 rounded-full text-xs font-bold ${s.kategori === 'Tinggi' ? 'bg-emerald-50 text-emerald-700' : s.kategori === 'Sedang' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}`}>{s.kategori}</span></td>
                       <td className="p-4 font-mono font-bold text-purple-700">{s.kode}</td>
+                      <td className="p-4 text-center">
+                        <button onClick={() => handleHapusSiswa(s.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold px-3 py-1 rounded-lg">❌ Hapus</button>
+                      </td>
                     </tr>
                   ))}
+                  {daftarSiswa.length === 0 && (
+                    <tr><td colSpan={6} className="text-center py-8 text-slate-400 text-xs">Belum ada data siswa di cloud database.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -267,7 +336,7 @@ export default function DashboardGuruPage() {
               <textarea required value={inputPertanyaan} onChange={(e) => setInputPertanyaan(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-xl border text-sm" /></div>
               <div className="space-y-1"><label className="text-xs font-bold text-slate-600">KUNCI JAWABAN</label>
               <input type="text" required value={inputKunci} onChange={(e) => setInputKunci(e.target.value)} className="w-full px-4 py-3 rounded-xl border text-sm" /></div>
-              <button type="submit" className="px-5 py-3 bg-purple-600 text-white font-semibold text-sm rounded-xl">💾 Daftarkan Soal</button>
+              <button type="submit" className="px-5 py-3 bg-purple-600 text-white font-semibold text-sm rounded-xl">💾 Daftarkan Soal ke Cloud</button>
             </form>
           )}
 
@@ -286,6 +355,9 @@ export default function DashboardGuruPage() {
                       <td className="p-4"><span className="text-[10px] font-bold bg-slate-100 p-1 rounded">{soal.sumber}</span></td>
                     </tr>
                   ))}
+                  {bankSoal.length === 0 && (
+                    <tr><td colSpan={5} className="text-center py-8 text-slate-400 text-xs">Belum ada koleksi soal di cloud database.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -299,13 +371,13 @@ export default function DashboardGuruPage() {
               {hasilAi && (
                 <div className="p-4 bg-indigo-50/30 border border-indigo-100 rounded-xl space-y-2">
                   <p className="text-sm">{hasilAi.pertanyaan}</p>
-                  <button onClick={simpanSoalDariAi} className="text-xs bg-white text-purple-700 border p-2 rounded-lg font-bold">📥 Simpan ke Bank Soal</button>
+                  <button onClick={simpanSoalDariAi} className="text-xs bg-white text-purple-700 border p-2 rounded-lg font-bold">📥 Simpan ke Cloud Bank Soal</button>
                 </div>
               )}
             </div>
           )}
 
-          {/* ================= TAB: ACAK SISWA KELOMPOK (Fitur I) ================= */}
+          {/* TAB: ACAK SISWA KELOMPOK */}
           {activeTab === "acak-siswa" && (
             <div className="max-w-md space-y-6">
               <div>
@@ -313,91 +385,75 @@ export default function DashboardGuruPage() {
                 <p className="text-xs text-slate-500 mt-1">Sistem akan mengacak siswa secara silang beradasarkan peringkat kemampuannya.</p>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-600 block">TENTUKAN JUMLAH KELOMPOK YANG DIINGINKAN</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={jumlahKelompokTarget}
-                  onChange={(e) => setJumlahKelompokTarget(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-purple-400 text-sm outline-none font-bold"
-                />
+                <label className="text-xs font-bold text-slate-600 block">TENTUKAN JUMLAH KELOMPOK</label>
+                <input type="number" min="1" max="10" value={jumlahKelompokTarget} onChange={(e) => setJumlahKelompokTarget(e.target.value)} className="w-full px-4 py-3 rounded-xl border text-sm font-bold" />
               </div>
-              <button onClick={handleAcakKelompokHeterogen} className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-sm rounded-xl shadow-md active:scale-95 transition-all">
-                🔀 Jalankan Pembagian Kelompok Adil
+              <button onClick={handleAcakKelompokHeterogen} className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-sm rounded-xl">
+                🔀 Jalankan & Publish Kelompok ke Cloud
               </button>
             </div>
           )}
 
-          {/* ================= TAB: ACAK SOAL (Fitur J) ================= */}
+          {/* TAB: ACAK SOAL */}
           {activeTab === "acak-soal" && (
             <div className="max-w-md space-y-6">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">Distribusi Acak Pembagian Soal</h2>
-                <p className="text-xs text-slate-500 mt-1">Menugaskan satu soal unik secara acak dari Bank Soal ke tiap kelompok yang telah terbentuk.</p>
               </div>
               {hasilKelompok.length === 0 ? (
-                <div className="p-4 bg-amber-50 text-amber-700 rounded-xl text-xs font-medium border border-amber-200">
-                  ⚠️ Silakan jalankan menu <b>"Acak Kelompok Siswa"</b> terlebih dahulu sebelum mendistribusikan soal.
-                </div>
+                <div className="p-4 bg-amber-50 text-amber-700 rounded-xl text-xs">⚠️ Silakan jalankan menu "Acak Kelompok Siswa" terlebih dahulu.</div>
               ) : (
-                <button onClick={handleAcakPembagianSoal} className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm rounded-xl shadow-md active:scale-95 transition-all">
-                  🎯 Acak dan Kirim Soal ke Kelompok
+                <button onClick={handleAcakPembagianSoal} className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm rounded-xl">
+                  🎯 Acak dan Kirim Soal ke E-LKPD Kelompok Realtime
                 </button>
               )}
             </div>
           )}
 
-          {/* ================= TAB: DAFTAR KELOMPOK (Fitur K) ================= */}
+          {/* TAB: DAFTAR KELOMPOK */}
           {activeTab === "daftar-kelompok" && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">Tampilan Panel Kelompok & E-LKPD Aktif</h2>
-                <p className="text-xs text-slate-500 mt-1">Daftar komposisi anggota tim heterogen beserta tugas masalah matematika kelompok.</p>
               </div>
-
               {hasilKelompok.length === 0 ? (
-                <div className="text-center py-16 text-slate-400 text-xs">Belum ada kelompok yang dibuat. Buka tab "Acak Kelompok Siswa" untuk memulai pembagian.</div>
+                <div className="text-center py-16 text-slate-400 text-xs">Belum ada kelompok aktif di database cloud.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {hasilKelompok.map((klp, idx) => (
-                    <div key={idx} className="border border-slate-100 rounded-2xl p-6 bg-slate-50/40 space-y-4 shadow-sm">
-                      <div className="flex justify-between items-center border-b pb-3">
-                        <h3 className="font-extrabold text-purple-800 text-base">{klp.namaKelompok}</h3>
-                        <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{klp.anggota.length} Anggota</span>
+                  {Object.keys(hasilKelompok).map((key: any, idx) => {
+                    const klp = hasilKelompok[key];
+                    return (
+                      <div key={idx} className="border rounded-2xl p-6 bg-slate-50/40 space-y-4">
+                        <div className="flex justify-between items-center border-b pb-3">
+                          <h3 className="font-extrabold text-purple-800 text-base">{klp.namaKelompok}</h3>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-[10px] font-bold text-slate-400 uppercase">Anggota Tim:</h4>
+                          <ul className="space-y-1.5">
+                            {klp.anggota?.map((member: any) => (
+                              <li key={member.id} className="flex justify-between items-center bg-white p-2 rounded-xl border text-xs">
+                                <span className="font-semibold text-slate-800">{member.nama}</span>
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-purple-50 text-purple-700">{member.kode}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="space-y-1 bg-white p-3 rounded-xl border border-dashed">
+                          <h4 className="text-[10px] font-bold text-purple-600 uppercase">Tugas Soal Kelompok:</h4>
+                          {!klp.soalDiberikan ? (
+                            <p className="text-[11px] text-slate-400 italic">Belum ada soal ditugaskan.</p>
+                          ) : (
+                            klp.soalDiberikan.map((soal: any) => (
+                              <div key={soal.id} className="space-y-1">
+                                <p className="text-[11px] font-bold text-slate-900">[{soal.kodeSoal}] {soal.materi}</p>
+                                <p className="text-[11px] text-slate-600">{soal.pertanyaan}</p>
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </div>
-                      
-                      {/* List Anggota */}
-                      <div className="space-y-2">
-                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Anggota Tim (Heterogen):</h4>
-                        <ul className="space-y-1.5">
-                          {klp.anggota.map(member => (
-                            <li key={member.id} className="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-100 text-xs">
-                              <span className="font-semibold text-slate-800">{member.nama}</span>
-                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
-                                member.kategori === 'Tinggi' ? 'bg-emerald-50 text-emerald-700' : member.kategori === 'Sedang' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'
-                              }`}>{member.kode}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Soal yang Ditugaskan */}
-                      <div className="space-y-1 bg-white p-3 rounded-xl border border-dashed border-purple-200">
-                        <h4 className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Tugas Soal Kelompok:</h4>
-                        {klp.soalDiberikan.length === 0 ? (
-                          <p className="text-[11px] text-slate-400 italic">Belum ada soal ditugaskan. Silakan ke menu "Acak Pembagian Soal".</p>
-                        ) : (
-                          klp.soalDiberikan.map(soal => (
-                            <div key={soal.id} className="space-y-1">
-                              <p className="text-[11px] font-bold text-slate-900"><span className="text-purple-700 font-mono">[{soal.kodeSoal}]</span> {soal.materi}</p>
-                              <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">{soal.pertanyaan}</p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
