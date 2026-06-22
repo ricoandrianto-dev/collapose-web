@@ -3,13 +3,13 @@ import { getDatabase } from "firebase/database";
 
 // Ganti nilai di bawah ini dengan kredensial dari Firebase Console Anda nanti
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  databaseURL: "YOUR_DATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyC2NCp6hicz-xoo4GwST8eG-mcmBnUiGmw",
+  authDomain: "e-lkpd-fix.firebaseapp.com",
+  databaseURL: "https://e-lkpd-fix-default-rtdb.firebaseio.com",
+  projectId: "e-lkpd-fix",
+  storageBucket: "e-lkpd-fix.firebasestorage.app",
+  messagingSenderId: "150851097854",
+  appId: "1:150851097854:web:52314bede7c278d41e41af",
 };
 
 // Inisialisasi Firebase (mencegah duplikasi inisialisasi pada Next.js SSR)
