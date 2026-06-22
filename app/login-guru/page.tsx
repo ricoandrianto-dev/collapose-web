@@ -27,78 +27,71 @@ export default function LoginGuruPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-[#f3f0ff] via-[#f8fafc] to-[#e0e7ff] text-slate-800 antialiased font-sans flex flex-col justify-center items-center relative overflow-hidden px-4">
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-200/30 blur-3xl pointer-events-none" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-violet-100 to-sky-100 px-4 py-10 font-sans text-slate-900">
+      <div className="pointer-events-none absolute top-0 left-0 h-64 w-64 rounded-full bg-purple-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl" />
 
-      <div className="absolute top-6 left-6 z-10">
-        <Link href="/">
-          <button className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-purple-700 transition-colors">
-            ⬅️ Kembali ke Beranda
-          </button>
-        </Link>
-      </div>
-
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-md p-8 sm:p-10 rounded-3xl border border-white shadow-2xl shadow-purple-100/50 space-y-6 relative z-10">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-purple-200 mx-auto mb-3">
-            👨‍🏫
+      <div className="relative mx-auto flex max-w-4xl flex-col gap-10 rounded-[2rem] border border-white/70 bg-white/90 p-8 shadow-2xl shadow-slate-200 backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-6">
+          <div className="rounded-3xl bg-gradient-to-br from-purple-700 to-indigo-600 px-6 py-5 text-white shadow-lg shadow-purple-200/40">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-white/10 text-2xl">👨‍🏫</div>
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-purple-100">Portal Guru</p>
+                <h1 className="mt-2 text-3xl font-extrabold">Masuk ke Dashboard</h1>
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Portal Guru</h1>
-          <p className="text-xs text-slate-500">Masuk untuk mengelola kelas, kelompok, dan LKPD siswa.</p>
+          <p className="max-w-md text-sm leading-6 text-slate-600">Kelola kelas, kelompok, dan bank soal dari satu tempat dengan tampilan modern dan mudah dinavigasi.</p>
+          <div className="rounded-3xl bg-slate-50 p-5 shadow-sm border border-slate-200">
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Akun tes</p>
+            <p className="mt-3 text-sm font-semibold text-slate-900">username: guru</p>
+            <p className="text-sm font-semibold text-slate-900">password: guru123</p>
+          </div>
         </div>
 
-        {error && (
-          <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs font-medium text-red-600 text-center">
-            ⚠️ {error}
+        <div className="w-full max-w-sm rounded-[2rem] bg-slate-950/95 p-8 text-white shadow-2xl shadow-slate-950/20">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold">Login Guru</h2>
+            <p className="mt-2 text-sm text-slate-300">Masuk untuk mulai mengelola kelas dan kelompok.</p>
           </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 tracking-wide block">USERNAME</label>
-            <div className="relative">
-              <span className="absolute left-4 top-3.5 text-slate-400 text-sm">👤</span>
+          {error && (
+            <div className="mb-4 rounded-3xl bg-red-500/15 px-4 py-3 text-sm text-red-100">⚠️ {error}</div>
+          )}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-[0.3em] text-slate-400">Username</label>
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Masukkan username Anda"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-sm transition-all outline-none"
+                placeholder="guru"
+                className="w-full rounded-3xl border border-slate-800/80 bg-slate-950/90 px-4 py-3 text-sm text-white outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20"
               />
             </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 tracking-wide block">PASSWORD</label>
-            <div className="relative">
-              <span className="absolute left-4 top-3.5 text-slate-400 text-sm">🔒</span>
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-[0.3em] text-slate-400">Password</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-sm transition-all outline-none"
+                className="w-full rounded-3xl border border-slate-800/80 bg-slate-950/90 px-4 py-3 text-sm text-white outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20"
               />
             </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full rounded-3xl bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-110 disabled:opacity-70"
+            >
+              {isLoading ? "Memproses Masuk..." : "Masuk ke Dashboard 🚀"}
+            </button>
+          </form>
+          <div className="mt-5 text-center text-xs text-slate-400">
+            <Link href="/" className="font-semibold text-white/80 hover:text-white">⬅️ Kembali ke Beranda</Link>
           </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-sm tracking-wide rounded-xl shadow-md shadow-purple-200 transition-all duration-200 transform active:scale-95 disabled:opacity-50"
-          >
-            {isLoading ? "Memproses Masuk..." : "Masuk ke Dashboard 🚀"}
-          </button>
-        </form>
-
-        <div className="text-center">
-          <p className="text-[11px] text-slate-400">
-            Kredensial Pengujian: <br />
-            <span className="font-mono text-purple-600">username: guru</span> | <span className="font-mono text-purple-600">password: guru123</span>
-          </p>
         </div>
       </div>
     </div>

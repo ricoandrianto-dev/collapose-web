@@ -271,7 +271,7 @@ export default function DashboardSiswaPage() {
                       required
                       rows={5}
                       value={inputJawaban}
-                      onChange={(e) => setInputInputJawaban(e.target.value)}
+                      onChange={(e) => setInputJawaban(e.target.value)}
                       placeholder="Ketikkan hasil diskusi, cara pengerjaan, dan jawaban akhir kelompok di sini secara detail..."
                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all font-medium leading-relaxed"
                     />

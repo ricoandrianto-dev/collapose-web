@@ -46,107 +46,114 @@ export default function HomePage() {
   const tombolJoinAktif = kelompokTerpilih !== "" && siswaTerpilih !== "";
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-[#f3f0ff] via-[#f8fafc] to-[#e0e7ff] text-slate-800 antialiased font-sans flex flex-col relative overflow-hidden">
-      
-      {/* Dekorasi Estetik Gradasi Latar Belakang (Style ala Gambar 1 & 3) */}
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-200/40 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-200/40 blur-3xl pointer-events-none" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-violet-100 text-slate-900 antialiased font-sans">
+      <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-fuchsia-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-sky-300/20 blur-3xl" />
 
-      {/* HEADER NAVBAR */}
-      <header className="w-full max-w-7xl mx-auto px-6 py-5 flex justify-between items-center relative z-10">
-        <div className="flex items-center space-x-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-purple-200">
-            C
+      <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-gradient-to-tr from-purple-700 to-indigo-600 text-white shadow-xl shadow-purple-200/40">C</div>
+          <div>
+            <p className="text-lg font-bold text-slate-900">Collapose</p>
+            <p className="text-sm text-slate-500">E-LKPD kolaboratif yang menarik untuk siswa dan guru.</p>
           </div>
-          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-purple-700 to-indigo-800 bg-clip-text text-transparent">
-            Collapose
-          </span>
         </div>
-        
-        {/* Tombol Login Guru di Kanan Atas */}
         <Link href="/login-guru">
-          <button className="px-5 py-2.5 rounded-xl border border-purple-200 bg-white/70 hover:bg-purple-50 text-purple-700 font-medium text-sm transition-all duration-200 active:scale-95 backdrop-blur-sm shadow-sm">
+          <button className="rounded-3xl border border-white/80 bg-white/90 px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm shadow-slate-200 transition hover:-translate-y-0.5 hover:bg-violet-50">
             👨‍🏫 Login Guru
           </button>
         </Link>
       </header>
 
-      {/* HERO SECTION CONTAINER */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10 py-8">
-        
-        {/* SISI KIRI: JUDUL & DESKRIPSI WEBSITE */}
-        <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-xs font-semibold text-purple-800 tracking-wide backdrop-blur-sm">
-            ✨ E-LKPD Matematika Kelas V
+      <main className="relative z-10 mx-auto grid max-w-7xl gap-10 px-6 py-10 lg:grid-cols-[1.4fr_0.9fr]">
+        <section className="space-y-8">
+          <div className="rounded-[2rem] border border-white/80 bg-white/90 p-10 shadow-2xl shadow-slate-200/50 backdrop-blur-xl">
+            <span className="inline-flex rounded-full bg-violet-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-violet-700">✨ E-LKPD Interaktif</span>
+            <h1 className="mt-6 text-5xl font-extrabold tracking-tight text-slate-950">Collapose untuk <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Pembelajaran Kolaboratif</span></h1>
+            <p className="mt-6 max-w-xl text-base leading-8 text-slate-600">Aplikasi lembar kerja digital berbasis kelompok yang memudahkan siswa berdiskusi, berbagi jawaban, dan mengerjakan tugas matematika dengan gaya modern.</p>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="rounded-3xl border border-white bg-slate-50 p-6 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Popular</p>
+                <p className="mt-4 text-sm font-semibold text-slate-900">Tampilan dashboard rapi dan mudah dinavigasi.</p>
+              </div>
+              <div className="rounded-3xl border border-white bg-slate-50 p-6 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Ongoing</p>
+                <p className="mt-4 text-sm font-semibold text-slate-900">Pembagian kelompok realtime sekaligus bank soal.</p>
+              </div>
+              <div className="rounded-3xl border border-white bg-slate-50 p-6 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Best Sales</p>
+                <p className="mt-4 text-sm font-semibold text-slate-900">Aman untuk kelas dan cepat untuk penggunaan harian.</p>
+              </div>
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
-            Collaborative <br />
-            <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Problem Posing
-            </span>
-          </h1>
-          <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-            Aplikasi lembar kerja digital interaktif berbasis kelompok untuk melatih kemampuan kolaborasi, diskusi, dan pengajuan masalah matematika secara realtime.
-          </p>
-        </div>
 
-        {/* SISI KANAN: FORM PILIH KELOMPOK (CARD INTERAKTIF) */}
-        <div className="lg:col-span-5 w-full max-w-md mx-auto">
-          <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl border border-white shadow-xl shadow-purple-100/50 space-y-6">
-            <div className="text-center lg:text-left space-y-1">
-              <h2 className="text-xl font-bold text-slate-900">Masuk Kelas</h2>
-              <p className="text-xs text-slate-500">Silakan pilih identitas kelompokmu untuk bergabung ke ruang kerja.</p>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="rounded-3xl border border-white bg-white/90 p-6 shadow-lg shadow-slate-200/30">
+              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Popular</p>
+              <h2 className="mt-4 text-lg font-bold text-slate-900">Desain Bersahabat</h2>
+              <p className="mt-3 text-sm text-slate-600">Interface cerah dan mudah dipahami siswa.</p>
             </div>
+            <div className="rounded-3xl border border-white bg-white/90 p-6 shadow-lg shadow-slate-200/30">
+              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Ongoing</p>
+              <h2 className="mt-4 text-lg font-bold text-slate-900">Real-time Collaboration</h2>
+              <p className="mt-3 text-sm text-slate-600">Jawaban tim tersimpan langsung untuk semua anggota.</p>
+            </div>
+            <div className="hidden xl:block rounded-3xl border border-white bg-white/90 p-6 shadow-lg shadow-slate-200/30">
+              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Best Sales</p>
+              <h2 className="mt-4 text-lg font-bold text-slate-900">Fitur Lengkap</h2>
+              <p className="mt-3 text-sm text-slate-600">Kelas, kelompok, dan soal dalam satu dashboard terpadu.</p>
+            </div>
+          </div>
+        </section>
 
-            <div className="space-y-4">
-              {/* Dropdown 1: Pilih Kelompok */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 tracking-wide block">PILIH KELOMPOK</label>
-                <select
-                  value={kelompokTerpilih}
-                  onChange={(e) => setKelompokTerpilih(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-sm transition-all outline-none"
-                >
-                  <option value="">-- Pilih Kelompok --</option>
-                  {Object.keys(DATA_KELOMPOK_AWAR).map((klp) => (
-                    <option key={klp} value={klp}>{klp}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Dropdown 2: Pilih Nama Siswa */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 tracking-wide block">NAMA ANGGOTA SISWA</label>
-                <select
-                  value={siswaTerpilih}
-                  onChange={(e) => setSiswaTerpilih(e.target.value)}
-                  disabled={!kelompokTerpilih}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white disabled:bg-slate-50 disabled:text-slate-400 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-sm transition-all outline-none"
-                >
-                  <option value="">-- Pilih Nama Kamu --</option>
-                  {daftarSiswa.map((sw) => (
-                    <option key={sw.nama} value={sw.nama}>
-                      {sw.nama} ({sw.kode})
-                    </option>
-                  ))}
-                </select>
+        <section className="rounded-[2rem] border border-white/80 bg-white/95 p-8 shadow-2xl shadow-slate-200/50 backdrop-blur-xl">
+          <div className="space-y-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-purple-500 font-semibold">Masuk Kelas</p>
+              <h2 className="mt-3 text-2xl font-bold text-slate-900">Pilih identitas kelompokmu</h2>
+            </div>
+            <div className="rounded-[1.75rem] border border-slate-100 bg-slate-50 p-6 shadow-sm">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Pilih Kelompok</label>
+                  <select
+                    value={kelompokTerpilih}
+                    onChange={(e) => setKelompokTerpilih(e.target.value)}
+                    className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
+                  >
+                    <option value="">-- Pilih Kelompok --</option>
+                    {Object.keys(DATA_KELOMPOK_AWAR).map((klp) => (
+                      <option key={klp} value={klp}>{klp}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Pilih Nama</label>
+                  <select
+                    value={siswaTerpilih}
+                    onChange={(e) => setSiswaTerpilih(e.target.value)}
+                    disabled={!kelompokTerpilih}
+                    className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200 disabled:bg-slate-100 disabled:text-slate-400"
+                  >
+                    <option value="">-- Pilih Nama Kamu --</option>
+                    {daftarSiswa.map((sw) => (
+                      <option key={sw.nama} value={sw.nama}>{sw.nama} ({sw.kode})</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-
-            {/* Tombol Join Kelas */}
             <button
               disabled={!tombolJoinAktif}
-              className={`w-full py-3.5 rounded-xl font-semibold text-sm tracking-wide transition-all duration-200 shadow-md transform active:scale-95 ${
-                tombolJoinAktif
-                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-purple-200"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+              className={`w-full rounded-3xl px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ${
+                tombolJoinAktif ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-200/40" : "bg-slate-200 text-slate-500 cursor-not-allowed"
               }`}
             >
               🚀 Masuk ke Ruang Kelompok
             </button>
           </div>
-        </div>
-
+        </section>
       </main>
     </div>
   );
